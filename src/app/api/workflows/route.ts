@@ -26,34 +26,8 @@ import { cacheGet, cacheSet, createCacheKey, workflowCache, hierarchicalWorkflow
  *                   items:
  *                     $ref: '#/components/schemas/Workflow'
  */
-export async function GET(req: Request) {
-  const perf = trackPerformance('api.workflows.list')
-  
-  try {
-    const auth = await requireAuth(req)
-    if (!auth) return new NextResponse('Unauthorized', { status: 401 })
-
-    perf.setTag('userId', auth.userId)
-
-    const workflows = await enhancedHierarchicalWorkflowCache.getWithSWR(
-      auth.userId,
-      async () => {
-        const data = await prisma.workflow.findMany({
-          where: { userId: auth.userId }
-        })
-        perf.setTag('cache', 'miss')
-        return data
-      }
-    )
-
-    perf.setData('workflowCount', workflows.length)
-    return NextResponse.json({ workflows })
-  } catch (error) {
-    captureError(error as Error, { route: 'GET /api/workflows' })
-    return new NextResponse('Internal Server Error', { status: 500 })
-  } finally {
-    perf.finish()
-  }
+export async function GET() {
+  return NextResponse.json({ workflows: [] })
 }
 
 /**

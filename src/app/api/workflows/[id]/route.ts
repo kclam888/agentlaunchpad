@@ -51,4 +51,11 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     console.error('Failed to delete workflow:', error)
     return new NextResponse('Internal Server Error', { status: 500 })
   }
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  return NextResponse.json({ id: params.id })
 } 
