@@ -1,0 +1,78 @@
+{
+  "dashboard": {
+    "title": "CopyCoder Overview",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total[5m])) by (status)",
+            "legendFormat": "{{status}}"
+          }
+        ]
+      },
+      {
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "p95"
+          }
+        ]
+      },
+      {
+        "title": "Memory Usage",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "sum(container_memory_usage_bytes{container=\"copycoder\"})"
+          }
+        ]
+      },
+      {
+        "title": "Cache Hit Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))",
+            "legendFormat": "hit rate"
+          }
+        ]
+      },
+      {
+        "title": "Backup Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "backup_age_seconds",
+            "legendFormat": "Last Backup Age"
+          }
+        ],
+        "thresholds": {
+          "steps": [
+            { "value": null, "color": "green" },
+            { "value": 86400, "color": "yellow" },
+            { "value": 172800, "color": "red" }
+          ]
+        }
+      },
+      {
+        "title": "Backup Size",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "backup_size_bytes",
+            "legendFormat": "Total Size"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        }
+      }
+    ]
+  }
+} 

@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  password        String
+  role            Role      @default(USER)
+  resetToken      String?
+  resetTokenExpiry DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  notificationPreferences NotificationPreferences?
+  integration            Integration?
+
+  // Relations
+  agents          Agent[]
+  workflows       Workflow[]
+  activityLogs    ActivityLog[]
+}
+
+model Agent {
+  id          String    @id @default(cuid())
+  name        String
+  type        AgentType
+  config      Json
+  status      AgentStatus @default(INACTIVE)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  activityLogs ActivityLog[]
+}
+
+model Workflow {
+  id          String    @id @default(cuid())
+  name        String
+  config      Json
+  status      WorkflowStatus @default(INACTIVE)
+  webhookUrl  String?   // n8n webhook URL for this workflow
+  webhookKey  String?   @unique @default(cuid()) // Secret key for webhook authentication
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  activityLogs ActivityLog[]
+}
+
+model ActivityLog {
+  id        String      @id @default(cuid())
+  type      String
+  status    String
+  message   String
+  metadata  Json        @default("{}")
+  agentId   String
+  userId    String
+  agent     Agent       @relation(fields: [agentId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+}
+
+model NotificationPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  email     Json     // Stores email notification settings
+  web       Json     // Stores web notification settings
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Integration {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  n8nUrl    String?
+  apiKey    String   @unique @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AgentType {
+  ONBOARDING
+  SUPPORT
+  ANALYSIS
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+} 

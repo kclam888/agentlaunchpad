@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copycoder
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: copycoder
+  template:
+    metadata:
+      labels:
+        app: copycoder
+    spec:
+      containers:
+      - name: copycoder
+        image: ${ECR_REGISTRY}/copycoder:${IMAGE_TAG}
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        envFrom:
+        - secretRef:
+            name: copycoder-secrets
+        - configMapRef:
+            name: copycoder-config 

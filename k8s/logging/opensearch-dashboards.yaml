@@ -1,0 +1,56 @@
+apiVersion: opensearch.k8s.aws/v1alpha1
+kind: OpenSearchDashboards
+metadata:
+  name: copycoder-dashboards
+spec:
+  dashboardsRef:
+    name: copycoder-opensearch
+  version: 2.8.0
+  nodeCount: 1
+  config:
+    opensearch_dashboards.yml: |
+      server.name: copycoder-dashboards
+      server.host: "0.0.0.0"
+      opensearch.hosts: ["https://copycoder-opensearch:9200"]
+      opensearch.ssl.verificationMode: none
+      opensearch.username: "admin"
+      opensearch.password: "${OPENSEARCH_PASSWORD}"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copycoder-dashboards-config
+data:
+  dashboard.json: |
+    {
+      "title": "CopyCoder Logs",
+      "panels": [
+        {
+          "title": "Error Rate",
+          "type": "visualization",
+          "visualization": {
+            "type": "line",
+            "params": {
+              "addTimeMarker": false
+            },
+            "aggs": [
+              {
+                "id": "1",
+                "type": "count",
+                "schema": "metric"
+              },
+              {
+                "id": "2",
+                "type": "date_histogram",
+                "schema": "segment",
+                "params": {
+                  "field": "@timestamp",
+                  "interval": "auto"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    } 

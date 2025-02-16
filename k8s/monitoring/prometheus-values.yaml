@@ -1,0 +1,28 @@
+serverFiles:
+  alerting_rules.yml:
+    groups:
+      - name: CopyCoderAlerts
+        rules:
+          - alert: HighErrorRate
+            expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.1
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: High error rate detected
+              
+          - alert: HighLatency
+            expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: High latency detected
+
+          - alert: HighMemoryUsage
+            expr: container_memory_usage_bytes{container="copycoder"} > 450Mi
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: High memory usage detected 
